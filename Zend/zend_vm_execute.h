@@ -7768,8 +7768,15 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_VAR_SPEC_CONST_U
 				Z_TYPE_P(value) > IS_NULL &&
 			    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 		} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-			SAVE_OPLINE();
-			result = !i_zend_is_true(value);
+			if (Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+				zend_class_entry *ce = Z_OBJCE_P(value);
+				zval ret;
+				zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+				result = i_zend_is_true(&ret);
+			} else {
+				SAVE_OPLINE();
+				result = !i_zend_is_true(value);
+			}
 			if (UNEXPECTED(EG(exception))) {
 				HANDLE_EXCEPTION();
 			}
@@ -42506,8 +42513,15 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_VAR_SPEC_CV_UNUS
 				Z_TYPE_P(value) > IS_NULL &&
 			    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 		} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-			SAVE_OPLINE();
-			result = !i_zend_is_true(value);
+			if (Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+				zend_class_entry *ce = Z_OBJCE_P(value);
+				zval ret;
+				zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+				result = i_zend_is_true(&ret);
+			} else {
+				SAVE_OPLINE();
+				result = !i_zend_is_true(value);
+			}
 			if (UNEXPECTED(EG(exception))) {
 				HANDLE_EXCEPTION();
 			}
@@ -53487,8 +53501,15 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_VAR_SPEC_TMPVAR_
 				Z_TYPE_P(value) > IS_NULL &&
 			    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 		} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-			SAVE_OPLINE();
-			result = !i_zend_is_true(value);
+			if (Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+				zend_class_entry *ce = Z_OBJCE_P(value);
+				zval ret;
+				zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+				result = i_zend_is_true(&ret);
+			} else {
+				SAVE_OPLINE();
+				result = !i_zend_is_true(value);
+			}
 			if (UNEXPECTED(EG(exception))) {
 				HANDLE_EXCEPTION();
 			}
