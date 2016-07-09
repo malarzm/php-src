@@ -5944,7 +5944,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -6830,7 +6837,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -7900,7 +7914,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -39774,7 +39795,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -40984,7 +41012,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -42666,7 +42701,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -52493,7 +52535,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -53060,7 +53109,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -53677,7 +53733,14 @@ is_static_prop_return:
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
