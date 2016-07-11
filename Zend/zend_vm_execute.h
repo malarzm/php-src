@@ -7781,7 +7781,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_VAR_SPEC_CONST_U
 	zval *value;
 	int result;
 
-	if (IS_CONST == IS_CV &&
+	if (IS_CONST != IS_CONST &&
 	    (opline->extended_value & ZEND_QUICK_SET)) {
 		value = EX_VAR(opline->op1.var);
 		if (opline->extended_value & ZEND_ISSET) {
@@ -42568,7 +42568,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_VAR_SPEC_CV_UNUS
 	zval *value;
 	int result;
 
-	if (IS_CV == IS_CV &&
+	if (IS_CV != IS_CONST &&
 	    (opline->extended_value & ZEND_QUICK_SET)) {
 		value = EX_VAR(opline->op1.var);
 		if (opline->extended_value & ZEND_ISSET) {
@@ -53598,7 +53598,7 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_VAR_SPEC_TMPVAR_
 	zval *value;
 	int result;
 
-	if ((IS_TMP_VAR|IS_VAR) == IS_CV &&
+	if ((IS_TMP_VAR|IS_VAR) != IS_CONST &&
 	    (opline->extended_value & ZEND_QUICK_SET)) {
 		value = EX_VAR(opline->op1.var);
 		if (opline->extended_value & ZEND_ISSET) {

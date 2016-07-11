@@ -6358,7 +6358,7 @@ ZEND_VM_HANDLER(114, ZEND_ISSET_ISEMPTY_VAR, CONST|TMPVAR|CV, UNUSED, VAR_FETCH|
 	zval *value;
 	int result;
 
-	if (OP1_TYPE == IS_CV &&
+	if (OP1_TYPE != IS_CONST &&
 	    (opline->extended_value & ZEND_QUICK_SET)) {
 		value = EX_VAR(opline->op1.var);
 		if (opline->extended_value & ZEND_ISSET) {

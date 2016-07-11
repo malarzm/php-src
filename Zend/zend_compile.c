@@ -7006,17 +7006,17 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 
 	ZEND_ASSERT(ast->kind == ZEND_AST_ISSET || ast->kind == ZEND_AST_EMPTY);
 
-	if (!zend_is_variable(var_ast) || zend_is_call(var_ast)) {
-		if (ast->kind == ZEND_AST_EMPTY) {
-			/* empty(expr) can be transformed to !expr */
-			zend_ast *not_ast = zend_ast_create_ex(ZEND_AST_UNARY_OP, ZEND_BOOL_NOT, var_ast);
-			zend_compile_expr(result, not_ast);
-			return;
-		} else {
-			zend_error_noreturn(E_COMPILE_ERROR,
-				"Cannot use isset() on the result of an expression "
-				"(you can use \"null !== expression\" instead)");
-		}
+	if (ast->kind == ZEND_AST_EMPTY && !zend_is_variable(var_ast)) {
+		/* empty(expr) can be transformed to !expr */
+		zend_ast *not_ast = zend_ast_create_ex(ZEND_AST_UNARY_OP, ZEND_BOOL_NOT, var_ast);
+		zend_compile_expr(result, not_ast);
+		return;
+	}
+
+	if (ast->kind == ZEND_AST_ISSET && (!zend_is_variable(var_ast) || zend_is_call(var_ast))) {
+		zend_error_noreturn(E_COMPILE_ERROR,
+			"Cannot use isset() on the result of an expression "
+			"(you can use \"null !== expression\" instead)");
 	}
 
 	switch (var_ast->kind) {
@@ -7042,6 +7042,13 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 		case ZEND_AST_STATIC_PROP:
 			opline = zend_compile_static_prop_common(result, var_ast, BP_VAR_IS, 0);
 			opline->opcode = ZEND_ISSET_ISEMPTY_STATIC_PROP;
+			break;
+		case ZEND_AST_CALL:
+		case ZEND_AST_METHOD_CALL:
+		case ZEND_AST_STATIC_CALL:
+			zend_compile_var(&var_node, var_ast, BP_VAR_IS);
+			opline = zend_emit_op(result, ZEND_ISSET_ISEMPTY_VAR, &var_node, NULL);
+			opline->extended_value = ZEND_QUICK_SET;
 			break;
 		EMPTY_SWITCH_DEFAULT_CASE()
 	}
