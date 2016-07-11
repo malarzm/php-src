@@ -30418,10 +30418,19 @@ static ZEND_OPCODE_HANDLER_RET ZEND_FASTCALL ZEND_ISSET_ISEMPTY_THIS_SPEC_UNUSED
 {
 	USE_OPLINE
 
-	ZVAL_BOOL(EX_VAR(opline->result.var),
-		(opline->extended_value & ZEND_ISSET) ?
-			 (Z_TYPE(EX(This)) == IS_OBJECT) :
-			 (Z_TYPE(EX(This)) != IS_OBJECT));
+
+	if (opline->extended_value & ZEND_ISEMPTY && Z_TYPE(EX(This)) == IS_OBJECT && Z_OBJCE(EX(This))->__isEmpty) {
+		zend_class_entry *ce = Z_OBJCE(EX(This));
+		zval ret;
+		zend_call_method_with_0_params(&EX(This), ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+		ZVAL_BOOL(EX_VAR(opline->result.var), i_zend_is_true(&ret));
+	} else {
+		ZVAL_BOOL(EX_VAR(opline->result.var),
+			(opline->extended_value & ZEND_ISSET) ?
+			 	(Z_TYPE(EX(This)) == IS_OBJECT) :
+			 	(Z_TYPE(EX(This)) != IS_OBJECT));
+	}
+
 	ZEND_VM_NEXT_OPCODE();
 }
 
