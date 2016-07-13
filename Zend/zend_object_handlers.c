@@ -1564,7 +1564,14 @@ found:
 					result = (Z_TYPE_P(value) != IS_NULL);
 					break;
 				default:
-					result = zend_is_true(value);
+					if (Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+                                		zend_class_entry *ce = Z_OBJCE_P(value);
+                                		zval ret;
+                                		zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+                                		result = !zend_is_true(&ret);
+                        		} else {
+						result = zend_is_true(value);
+					}
 					break;
 				case 2:
 					result = 1;

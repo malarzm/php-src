@@ -6358,7 +6358,7 @@ ZEND_VM_HANDLER(114, ZEND_ISSET_ISEMPTY_VAR, CONST|TMPVAR|CV, UNUSED, VAR_FETCH|
 	zval *value;
 	int result;
 
-	if (OP1_TYPE == IS_CV &&
+	if (OP1_TYPE != IS_CONST &&
 	    (opline->extended_value & ZEND_QUICK_SET)) {
 		value = EX_VAR(opline->op1.var);
 		if (opline->extended_value & ZEND_ISSET) {
@@ -6366,8 +6366,15 @@ ZEND_VM_HANDLER(114, ZEND_ISSET_ISEMPTY_VAR, CONST|TMPVAR|CV, UNUSED, VAR_FETCH|
 				Z_TYPE_P(value) > IS_NULL &&
 			    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 		} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-			SAVE_OPLINE();
-			result = !i_zend_is_true(value);
+			if (Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+				zend_class_entry *ce = Z_OBJCE_P(value);
+				zval ret;
+				zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+				result = i_zend_is_true(&ret);
+			} else {
+				SAVE_OPLINE();
+				result = !i_zend_is_true(value);
+			}
 			if (UNEXPECTED(EG(exception))) {
 				HANDLE_EXCEPTION();
 			}
@@ -6486,7 +6493,14 @@ ZEND_VM_C_LABEL(is_static_prop_return):
 		result = value && Z_TYPE_P(value) > IS_NULL &&
 		    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 	} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-		result = !value || !i_zend_is_true(value);
+		if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+			zend_class_entry *ce = Z_OBJCE_P(value);
+			zval ret;
+			zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+			result = i_zend_is_true(&ret);
+		} else {
+			result = !value || !i_zend_is_true(value);
+		}
 	}
 
 	ZEND_VM_SMART_BRANCH(result, 1);
@@ -6560,7 +6574,14 @@ ZEND_VM_C_LABEL(num_index_prop):
 			result = value != NULL && Z_TYPE_P(value) > IS_NULL &&
 			    (!Z_ISREF_P(value) || Z_TYPE_P(Z_REFVAL_P(value)) != IS_NULL);
 		} else /* if (opline->extended_value & ZEND_ISEMPTY) */ {
-			result = (value == NULL || !i_zend_is_true(value));
+			if (value != NULL && Z_TYPE_P(value) == IS_OBJECT && Z_OBJCE_P(value)->__isEmpty) {
+				zend_class_entry *ce = Z_OBJCE_P(value);
+				zval ret;
+				zend_call_method_with_0_params(value, ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+				result = i_zend_is_true(&ret);
+			} else {
+				result = (value == NULL || !i_zend_is_true(value));
+			}
 		}
 		ZEND_VM_C_GOTO(isset_dim_obj_exit);
 	} else if ((OP1_TYPE & (IS_VAR|IS_CV)) && Z_ISREF_P(container)) {
@@ -8098,10 +8119,19 @@ ZEND_VM_HANDLER(186, ZEND_ISSET_ISEMPTY_THIS, UNUSED, UNUSED)
 {
 	USE_OPLINE
 
-	ZVAL_BOOL(EX_VAR(opline->result.var),
-		(opline->extended_value & ZEND_ISSET) ?
-			 (Z_TYPE(EX(This)) == IS_OBJECT) :
-			 (Z_TYPE(EX(This)) != IS_OBJECT));
+
+	if (opline->extended_value & ZEND_ISEMPTY && Z_TYPE(EX(This)) == IS_OBJECT && Z_OBJCE(EX(This))->__isEmpty) {
+		zend_class_entry *ce = Z_OBJCE(EX(This));
+		zval ret;
+		zend_call_method_with_0_params(&EX(This), ce, &ce->__isEmpty, ZEND_ISEMPTY_FUNC_NAME, &ret);
+		ZVAL_BOOL(EX_VAR(opline->result.var), i_zend_is_true(&ret));
+	} else {
+		ZVAL_BOOL(EX_VAR(opline->result.var),
+			(opline->extended_value & ZEND_ISSET) ?
+			 	(Z_TYPE(EX(This)) == IS_OBJECT) :
+			 	(Z_TYPE(EX(This)) != IS_OBJECT));
+	}
+
 	ZEND_VM_NEXT_OPCODE();
 }
 

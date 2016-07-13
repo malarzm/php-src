@@ -2104,6 +2104,9 @@ ZEND_API void zend_check_magic_method_implementation(const zend_class_entry *ce,
 	} else if (name_len == sizeof(ZEND_DEBUGINFO_FUNC_NAME) - 1 &&
 		!memcmp(lcname, ZEND_DEBUGINFO_FUNC_NAME, sizeof(ZEND_DEBUGINFO_FUNC_NAME)-1) && fptr->common.num_args != 0) {
 		zend_error(error_type, "Method %s::%s() cannot take arguments", ZSTR_VAL(ce->name), ZEND_DEBUGINFO_FUNC_NAME);
+	} else if (name_len == sizeof(ZEND_ISEMPTY_FUNC_NAME) - 1 &&
+		!memcmp(lcname, ZEND_ISEMPTY_FUNC_NAME, sizeof(ZEND_ISEMPTY_FUNC_NAME)-1) && fptr->common.num_args != 0) {
+		zend_error(error_type, "Method %s::%s() cannot take arguments", ZSTR_VAL(ce->name), ZEND_ISEMPTY_FUNC_NAME);
 	}
 }
 /* }}} */
@@ -2117,7 +2120,7 @@ ZEND_API int zend_register_functions(zend_class_entry *scope, const zend_functio
 	int count=0, unload=0;
 	HashTable *target_function_table = function_table;
 	int error_type;
-	zend_function *ctor = NULL, *dtor = NULL, *clone = NULL, *__get = NULL, *__set = NULL, *__unset = NULL, *__isset = NULL, *__call = NULL, *__callstatic = NULL, *__tostring = NULL, *__debugInfo = NULL;
+	zend_function *ctor = NULL, *dtor = NULL, *clone = NULL, *__get = NULL, *__set = NULL, *__unset = NULL, *__isset = NULL, *__call = NULL, *__callstatic = NULL, *__tostring = NULL, *__debugInfo = NULL, *__isEmpty = NULL;
 	zend_string *lowercase_name;
 	size_t fname_len;
 	const char *lc_class_name = NULL;
@@ -2289,6 +2292,8 @@ ZEND_API int zend_register_functions(zend_class_entry *scope, const zend_functio
 				scope->ce_flags |= ZEND_ACC_USE_GUARDS;
 			} else if (zend_string_equals_literal(lowercase_name, ZEND_DEBUGINFO_FUNC_NAME)) {
 				__debugInfo = reg_function;
+			} else if (zend_string_equals_literal(lowercase_name, ZEND_ISEMPTY_FUNC_NAME)) {
+				__isEmpty = reg_function;
 			} else {
 				reg_function = NULL;
 			}
@@ -2329,6 +2334,7 @@ ZEND_API int zend_register_functions(zend_class_entry *scope, const zend_functio
 		scope->__unset = __unset;
 		scope->__isset = __isset;
 		scope->__debugInfo = __debugInfo;
+		scope->__isEmpty = __isEmpty;
 		if (ctor) {
 			ctor->common.fn_flags |= ZEND_ACC_CTOR;
 			if (ctor->common.fn_flags & ZEND_ACC_STATIC) {
@@ -2396,6 +2402,12 @@ ZEND_API int zend_register_functions(zend_class_entry *scope, const zend_functio
 			if (__debugInfo->common.fn_flags & ZEND_ACC_STATIC) {
 				zend_error(error_type, "Method %s::%s() cannot be static", ZSTR_VAL(scope->name), ZSTR_VAL(__debugInfo->common.function_name));
 			}
+		}
+		if (__isEmpty) {
+			if (__isEmpty->common.fn_flags & ZEND_ACC_STATIC) {
+				zend_error(error_type, "Method %s::%s() cannot be static", ZSTR_VAL(scope->name), ZSTR_VAL(__isEmpty->common.function_name));
+			}
+			__isEmpty->common.fn_flags &= ~ZEND_ACC_ALLOW_STATIC;
 		}
 
 		if (ctor && ctor->common.fn_flags & ZEND_ACC_HAS_RETURN_TYPE && ctor->common.fn_flags & ZEND_ACC_CTOR) {

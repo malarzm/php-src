@@ -1790,6 +1790,7 @@ ZEND_API void zend_initialize_class_data(zend_class_entry *ce, zend_bool nullify
 		ce->serialize_func = NULL;
 		ce->unserialize_func = NULL;
 		ce->__debugInfo = NULL;
+		ce->__isEmpty = NULL;
 		if (ce->type == ZEND_INTERNAL_CLASS) {
 			ce->info.internal.module = NULL;
 			ce->info.internal.builtin_functions = NULL;
@@ -5312,6 +5313,11 @@ void zend_begin_method_decl(zend_op_array *op_array, zend_string *name, zend_boo
 				zend_error(E_WARNING, "The magic method __debugInfo() must have "
 					"public visibility and cannot be static");
 			}
+		} else if (zend_string_equals_literal(lcname, ZEND_ISEMPTY_FUNC_NAME)) {
+			if (!is_public || is_static) {
+				zend_error(E_WARNING, "The magic method __isEmpty() must have "
+					"public visibility and cannot be static");
+			}
 		}
 	} else {
 		if (!in_trait && zend_string_equals_ci(lcname, ce->name)) {
@@ -5381,6 +5387,12 @@ void zend_begin_method_decl(zend_op_array *op_array, zend_string *name, zend_boo
 					"public visibility and cannot be static");
 			}
 			ce->__debugInfo = (zend_function *) op_array;
+		} else if (zend_string_equals_literal(lcname, ZEND_ISEMPTY_FUNC_NAME)) {
+			if (!is_public || is_static) {
+				zend_error(E_WARNING, "The magic method __isEmpty() must have "
+					"public visibility and cannot be static");
+			}
+			ce->__isEmpty = (zend_function *) op_array;
 		} else if (!is_static) {
 			op_array->fn_flags |= ZEND_ACC_ALLOW_STATIC;
 		}
@@ -6994,17 +7006,17 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 
 	ZEND_ASSERT(ast->kind == ZEND_AST_ISSET || ast->kind == ZEND_AST_EMPTY);
 
-	if (!zend_is_variable(var_ast) || zend_is_call(var_ast)) {
-		if (ast->kind == ZEND_AST_EMPTY) {
-			/* empty(expr) can be transformed to !expr */
-			zend_ast *not_ast = zend_ast_create_ex(ZEND_AST_UNARY_OP, ZEND_BOOL_NOT, var_ast);
-			zend_compile_expr(result, not_ast);
-			return;
-		} else {
-			zend_error_noreturn(E_COMPILE_ERROR,
-				"Cannot use isset() on the result of an expression "
-				"(you can use \"null !== expression\" instead)");
-		}
+	if (ast->kind == ZEND_AST_EMPTY && !zend_is_variable(var_ast)) {
+		/* empty(expr) can be transformed to !expr */
+		zend_ast *not_ast = zend_ast_create_ex(ZEND_AST_UNARY_OP, ZEND_BOOL_NOT, var_ast);
+		zend_compile_expr(result, not_ast);
+		return;
+	}
+
+	if (ast->kind == ZEND_AST_ISSET && (!zend_is_variable(var_ast) || zend_is_call(var_ast))) {
+		zend_error_noreturn(E_COMPILE_ERROR,
+			"Cannot use isset() on the result of an expression "
+			"(you can use \"null !== expression\" instead)");
 	}
 
 	switch (var_ast->kind) {
@@ -7030,6 +7042,13 @@ void zend_compile_isset_or_empty(znode *result, zend_ast *ast) /* {{{ */
 		case ZEND_AST_STATIC_PROP:
 			opline = zend_compile_static_prop_common(result, var_ast, BP_VAR_IS, 0);
 			opline->opcode = ZEND_ISSET_ISEMPTY_STATIC_PROP;
+			break;
+		case ZEND_AST_CALL:
+		case ZEND_AST_METHOD_CALL:
+		case ZEND_AST_STATIC_CALL:
+			zend_compile_var(&var_node, var_ast, BP_VAR_IS);
+			opline = zend_emit_op(result, ZEND_ISSET_ISEMPTY_VAR, &var_node, NULL);
+			opline->extended_value = ZEND_QUICK_SET;
 			break;
 		EMPTY_SWITCH_DEFAULT_CASE()
 	}
